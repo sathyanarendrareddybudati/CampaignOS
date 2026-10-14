@@ -1,16 +1,25 @@
-import { useState } from 'react'
-import Login from './Login'
+import { useState, useEffect } from 'react'
+import AuthPage from './pages/AuthPage'
 import Dashboard from './Dashboard'
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [token, setToken] = useState(localStorage.getItem('token') || null)
+
+  const handleLogin = (newToken) => {
+    setToken(newToken)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    setToken(null)
+  }
 
   return (
     <>
-      {isAuthenticated ? (
-        <Dashboard />
+      {token ? (
+        <Dashboard token={token} onLogout={handleLogout} />
       ) : (
-        <Login onLogin={() => setIsAuthenticated(true)} />
+        <AuthPage onLogin={handleLogin} />
       )}
     </>
   )

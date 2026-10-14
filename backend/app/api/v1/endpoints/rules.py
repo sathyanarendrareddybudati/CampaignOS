@@ -11,6 +11,10 @@ router = APIRouter()
 def create_rule(id: str, rule: schemas.RuleCreate, db: Session = Depends(get_db)):
     return services.create_rule(db, id, rule)
 
+@router.get("/rules/all", response_model=List[schemas.RuleResponse])
+def list_all_rules(db: Session = Depends(get_db)):
+    return services.get_all_rules(db)
+
 @router.get("/{id}/rules", response_model=List[schemas.RuleResponse])
 def list_rules(id: str, db: Session = Depends(get_db)):
     return services.get_rules_for_campaign(db, id)

@@ -6,6 +6,12 @@ import uuid
 def generate_uuid():
     return str(uuid.uuid4())
 
+class User(Base):
+    __tablename__ = "users"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+
 class Campaign(Base):
     __tablename__ = "campaigns"
     id = Column(String, primary_key=True, default=generate_uuid)
@@ -44,3 +50,13 @@ class Reward(Base):
     game_id = Column(String, ForeignKey("games.id"))
     prize = Column(String)
     status = Column(String, default="Issued")
+
+class EventLog(Base):
+    __tablename__ = "event_logs"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    time = Column(String)
+    event = Column(String)
+    rule = Column(String)
+    dispatch = Column(String)
+    status = Column(String)
+    css_class = Column(String)

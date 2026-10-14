@@ -20,6 +20,10 @@ def list_game_templates():
 def configure_game(id: str, config: schemas.GameCreate, db: Session = Depends(get_db)):
     return services.configure_game(db, id, config)
 
+@router.get("/games", response_model=List[schemas.GameResponse])
+def list_all_games(db: Session = Depends(get_db)):
+    return services.get_all_games(db)
+
 @router.post("/games/{id}/play")
 def play_game(id: str, db: Session = Depends(get_db)):
     result, error = services.play_game(db, id)

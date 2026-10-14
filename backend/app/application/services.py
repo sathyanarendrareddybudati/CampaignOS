@@ -49,6 +49,12 @@ def create_rule(db: Session, campaign_id: str, rule: schemas.RuleCreate):
 def get_rules_for_campaign(db: Session, campaign_id: str):
     return db.query(models.Rule).filter(models.Rule.campaign_id == campaign_id).all()
 
+def get_all_rules(db: Session):
+    return db.query(models.Rule).all()
+
+def get_all_games(db: Session):
+    return db.query(models.Game).all()
+
 def delete_rule(db: Session, rule_id: str):
     db_rule = db.query(models.Rule).filter(models.Rule.id == rule_id).first()
     if db_rule:

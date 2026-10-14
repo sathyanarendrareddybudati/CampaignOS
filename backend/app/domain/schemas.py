@@ -50,3 +50,31 @@ class GameResponse(GameBase):
     campaign_id: str
     class Config:
         from_attributes = True
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
+class EventLogResponse(BaseModel):
+    id: str
+    time: Optional[str] = None
+    event: Optional[str] = None
+    rule: Optional[str] = None
+    dispatch: Optional[str] = None
+    status: Optional[str] = None
+    css_class: Optional[str] = None
+    class Config:
+        from_attributes = True
