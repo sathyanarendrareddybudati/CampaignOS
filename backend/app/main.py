@@ -35,23 +35,30 @@ app.add_middleware(
 # Core Authentication & User Management router (Common)
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 
-# Satya's endpoints: Campaigns & Rules
+# rahul's endpoints: Campaigns & Rules
 try:
     from app.api.v1.endpoints import campaigns, rules
-    app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["campaigns"], dependencies=[Depends(deps.get_current_user)])
-    app.include_router(rules.router, prefix="/api/v1/campaigns", tags=["rules"], dependencies=[Depends(deps.get_current_user)])
-except ImportError:
+    if hasattr(campaigns, "router"):
+        app.include_router(campaigns.router, prefix="/api/v1/campaigns", tags=["campaigns"], dependencies=[Depends(deps.get_current_user)])
+    if hasattr(rules, "router"):
+        app.include_router(rules.router, prefix="/api/v1/campaigns", tags=["rules"], dependencies=[Depends(deps.get_current_user)])
+except Exception:
     pass
 
-# Rahul's endpoints: Games, Events, Overview, Analytics
+# satya's endpoints: Games, Events, Overview, Analytics
 try:
     from app.api.v1.endpoints import games, events, overview, analytics
-    app.include_router(games.router, prefix="/api/v1", tags=["games"], dependencies=[Depends(deps.get_current_user)])
-    app.include_router(games.router_templates, prefix="/api/v1/gametemplates", tags=["gametemplates"], dependencies=[Depends(deps.get_current_user)])
-    app.include_router(events.router, prefix="/api/v1/events", tags=["events"], dependencies=[Depends(deps.get_current_user)])
-    app.include_router(overview.router, prefix="/api/v1/overview", tags=["overview"], dependencies=[Depends(deps.get_current_user)])
-    app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"], dependencies=[Depends(deps.get_current_user)])
-except ImportError:
+    if hasattr(games, "router"):
+        app.include_router(games.router, prefix="/api/v1", tags=["games"], dependencies=[Depends(deps.get_current_user)])
+    if hasattr(games, "router_templates"):
+        app.include_router(games.router_templates, prefix="/api/v1/gametemplates", tags=["gametemplates"], dependencies=[Depends(deps.get_current_user)])
+    if hasattr(events, "router"):
+        app.include_router(events.router, prefix="/api/v1/events", tags=["events"], dependencies=[Depends(deps.get_current_user)])
+    if hasattr(overview, "router"):
+        app.include_router(overview.router, prefix="/api/v1/overview", tags=["overview"], dependencies=[Depends(deps.get_current_user)])
+    if hasattr(analytics, "router"):
+        app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"], dependencies=[Depends(deps.get_current_user)])
+except Exception:
     pass
 
 @app.get("/")
