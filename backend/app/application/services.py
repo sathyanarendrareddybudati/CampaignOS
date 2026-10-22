@@ -73,11 +73,26 @@ def play_game(db: Session, game_id: str):
     db_game = db.query(models.Game).filter(models.Game.id == game_id).first()
     if not db_game:
         return None, "Game not found"
+
+    # Enforce campaign reward cap if configured
+    if db_game.campaign_id:
+        campaign = db.query(models.Campaign).filter(models.Campaign.id == db_game.campaign_id).first()
+        if campaign and campaign.reward_cap:
+            issued_rewards_count = db.query(models.Reward).join(models.Game).filter(models.Game.campaign_id == campaign.id).count()
+            if issued_rewards_count >= campaign.reward_cap:
+                return {
+                    "result": "loss",
+                    "prize": None,
+                    "reason": "Campaign reward cap reached",
+                    "cap_reached": True,
+                    "issued_count": issued_rewards_count,
+                    "cap": campaign.reward_cap
+                }, None
         
-    won = random.random() < db_game.odds
-    if won:
+    won = random.random() < (db_game.odds or 0.5)
+    if won and db_game.prizes:
         prize = random.choice(db_game.prizes)
-        db_reward = models.Reward(game_id=game_id, prize=prize)
+        db_reward = models.Reward(game_id=game_id, prize=prize, status="Issued")
         db.add(db_reward)
         db.commit()
         db.refresh(db_reward)
@@ -99,3 +114,31 @@ def redeem_reward(db: Session, reward_id: str):
     db.commit()
     db.refresh(db_reward)
     return db_reward, None
+
+def create_banner(db: Session, banner: schemas.PromoBannerCreate):
+    from datetime import datetime
+    db_banner = models.PromoBanner(
+        **banner.model_dump(),
+        created_at=datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+    )
+    db.add(db_banner)
+    db.commit()
+    db.refresh(db_banner)
+    return db_banner
+
+def get_banners(db: Session, campaign_id: str = None):
+    query = db.query(models.PromoBanner)
+    if campaign_id:
+        query = query.filter(models.PromoBanner.campaign_id == campaign_id)
+    return query.order_by(models.PromoBanner.id.desc()).all()
+
+def get_banner(db: Session, banner_id: str):
+    return db.query(models.PromoBanner).filter(models.PromoBanner.id == banner_id).first()
+
+def delete_banner(db: Session, banner_id: str):
+    db_banner = get_banner(db, banner_id)
+    if db_banner:
+        db.delete(db_banner)
+        db.commit()
+    return db_banner
+

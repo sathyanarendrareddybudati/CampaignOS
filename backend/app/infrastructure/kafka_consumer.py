@@ -37,7 +37,7 @@ def send_email(to_email: str, action_type: str):
     try:
         SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
         SMTP_PORT = int(os.environ.get("SMTP_PORT", 587))
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
         server.starttls()
         server.login(SENDER_EMAIL, SENDER_PASSWORD)
         text = msg.as_string()
@@ -45,104 +45,122 @@ def send_email(to_email: str, action_type: str):
         server.quit()
         print(f"Successfully sent email to {to_email}")
         return True
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"Failed to send email to {to_email}: SMTP Authentication Error ({e.smtp_code} {e.smtp_error}). If using Gmail, an App Password is required.")
+        return False
+    except smtplib.SMTPServerDisconnected as e:
+        print(f"Failed to send email to {to_email}: Server disconnected ({e}). Gmail disconnects the connection if an App Password is not used.")
+        return False
     except Exception as e:
         print(f"Failed to send email to {to_email}: {e}")
         return False
 
 async def consume_events():
-    context = ssl.create_default_context()
-    context.load_verify_locations(cafile="ca.pem")
-    
     bootstrap_servers = os.environ.get("KAFKA_BOOTSTRAP_SERVERS")
+    if not bootstrap_servers:
+        print("[Kafka] KAFKA_BOOTSTRAP_SERVERS not set. Skipping event consumer.")
+        return
+
     username = os.environ.get("KAFKA_USERNAME")
     password = os.environ.get("KAFKA_PASSWORD")
     topic = os.environ.get("KAFKA_TOPIC", "marketing_events")
-    
-    consumer = AIOKafkaConsumer(
-        topic,
-        bootstrap_servers=bootstrap_servers,
-        security_protocol="SASL_SSL",
-        sasl_mechanism="PLAIN",
-        sasl_plain_username=username,
-        sasl_plain_password=password,
-        ssl_context=context,
-        group_id="loyalty_engine_group"
-    )
-    
-    await consumer.start()
-    try:
-        async for msg in consumer:
-            print("consumed: ", msg.topic, msg.partition, msg.offset,
-                  msg.key, msg.value, msg.timestamp)
+
+    while True:
+        consumer = None
+        try:
+            context = ssl.create_default_context()
+            if os.path.exists("ca.pem"):
+                context.load_verify_locations(cafile="ca.pem")
+
+            consumer = AIOKafkaConsumer(
+                topic,
+                bootstrap_servers=bootstrap_servers,
+                security_protocol="SASL_SSL",
+                sasl_mechanism="PLAIN",
+                sasl_plain_username=username,
+                sasl_plain_password=password,
+                ssl_context=context,
+                group_id="loyalty_engine_group"
+            )
             
-            # parse message and store in db
-            try:
-                val_str = msg.value.decode('utf-8')
-                db = SessionLocal()
+            await consumer.start()
+            print(f"[Kafka Consumer] Successfully connected to {bootstrap_servers} on topic '{topic}'")
+
+            async for msg in consumer:
+                print("consumed: ", msg.topic, msg.partition, msg.offset,
+                      msg.key, msg.value, msg.timestamp)
+                
+                # parse message and store in db
                 try:
-                    data = json.loads(val_str)
-                    event_type = data.get("event", "unknown.event")
-                    email = data.get("email", "unknown@customer.com")
-                    
-                    # 1. Log the incoming raw event
-                    new_log = models.EventLog(
-                        time=datetime.utcnow().strftime("%H:%M:%S"),
-                        event=event_type,
-                        rule="Evaluating rules...",
-                        dispatch="—",
-                        status="Received",
-                        css_class="gray"
-                    )
-                    db.add(new_log)
-                    db.commit()
-
-                    # 2. Query Rules Engine
-                    rules = db.query(models.Rule).all()
-                    matched = False
-                    for r in rules:
-                        trigger_event = r.trigger.get("event") if isinstance(r.trigger, dict) else None
-                        if trigger_event == event_type:
-                            matched = True
-                            action_type = r.action.get("type", "Action") if isinstance(r.action, dict) else "Action"
-                            
-                            # 3. Simulate Dispatch
-                            dispatch_msg = f"{action_type} adapter"
-                            print(f"[RULES ENGINE] Match found for {event_type}! Executing action: {action_type} for {email}")
-                            
-                            # Actually send the email if email is provided
-                            if email != "unknown@customer.com" and "email" in action_type.lower():
-                                send_email(email, action_type)
-                            
-                            # 4. Log the action result
-                            action_log = models.EventLog(
-                                time=datetime.utcnow().strftime("%H:%M:%S"),
-                                event=f"campaign.action.{action_type.lower()}",
-                                rule=f"Matched trigger: {trigger_event}",
-                                dispatch=dispatch_msg,
-                                status="Delivered",
-                                css_class="purple" if "game" in action_type.lower() else "blue"
-                            )
-                            db.add(action_log)
-                            db.commit()
-
-                    if not matched:
-                        # Log ignored event
-                        ignored_log = models.EventLog(
-                            time=datetime.utcnow().strftime("%H:%M:%S"),
-                            event=f"{event_type}",
-                            rule="No matching rule",
-                            dispatch="—",
-                            status="Ignored",
-                            css_class="yellow"
-                        )
-                        db.add(ignored_log)
-                        db.commit()
+                    val_str = msg.value.decode('utf-8')
+                    db = SessionLocal()
+                    try:
+                        data = json.loads(val_str)
+                        event_type = data.get("event", "unknown.event")
+                        email = data.get("email", "unknown@customer.com")
                         
-                except json.JSONDecodeError:
-                    print("Received non-JSON message:", val_str)
-                finally:
-                    db.close()
-            except Exception as e:
-                print("Error processing kafka message", e)
-    finally:
-        await consumer.stop()
+                        # Query Rules Engine
+                        rules = db.query(models.Rule).all()
+                        first_match = None
+                        time_str = datetime.utcnow().strftime("%H:%M:%S")
+
+                        for r in rules:
+                            trigger_event = r.trigger.get("event") if isinstance(r.trigger, dict) else None
+                            if trigger_event == event_type:
+                                action_type = r.action.get("type", "Action") if isinstance(r.action, dict) else "Action"
+                                dispatch_msg = f"{action_type} adapter"
+                                print(f"[RULES ENGINE] Match found for {event_type}! Executing action: {action_type} for {email}")
+                                
+                                # Actually send the email if email is provided
+                                if email != "unknown@customer.com" and "email" in action_type.lower():
+                                    send_email(email, action_type)
+                                
+                                if not first_match:
+                                    first_match = {
+                                        "rule": f"Matched: {trigger_event}",
+                                        "dispatch": dispatch_msg,
+                                        "status": "Delivered",
+                                        "css_class": "purple" if "game" in action_type.lower() else "blue"
+                                    }
+
+                        if first_match:
+                            event_log = models.EventLog(
+                                time=time_str,
+                                event=event_type,
+                                rule=first_match["rule"],
+                                dispatch=first_match["dispatch"],
+                                status=first_match["status"],
+                                css_class=first_match["css_class"]
+                            )
+                        else:
+                            event_log = models.EventLog(
+                                time=time_str,
+                                event=event_type,
+                                rule="No matching rule",
+                                dispatch="—",
+                                status="Ignored",
+                                css_class="yellow"
+                            )
+                        
+                        db.add(event_log)
+                        db.commit()
+                            
+                    except json.JSONDecodeError:
+                        print("Received non-JSON message:", val_str)
+                    finally:
+                        db.close()
+                except Exception as e:
+                    print("Error processing kafka message", e)
+
+        except (asyncio.CancelledError, KeyboardInterrupt):
+            print("[Kafka Consumer] Shutting down.")
+            break
+        except Exception as e:
+            print(f"[Kafka Consumer] Connection issue ({e}). Reconnecting in 30s...")
+            await asyncio.sleep(30)
+        finally:
+            if consumer:
+                try:
+                    await consumer.stop()
+                except Exception:
+                    pass
