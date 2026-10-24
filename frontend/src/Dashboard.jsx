@@ -1,96 +1,229 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import './index.css';
 import Sidebar from './components/layout/Sidebar';
 import Topbar from './components/layout/Topbar';
-
-const ModulePlaceholder = ({ title, assignee, description }) => (
-  <div style={{
-    margin: '2rem auto',
-    maxWidth: '600px',
-    padding: '2.5rem',
-    borderRadius: '16px',
-    background: 'rgba(255, 255, 255, 0.04)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    textAlign: 'center'
-  }}>
-    <h3 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '0.75rem', color: '#fff' }}>
-      {title} Module
-    </h3>
-    <div style={{
-      display: 'inline-block',
-      padding: '0.35rem 0.85rem',
-      borderRadius: '20px',
-      background: 'rgba(99, 102, 241, 0.2)',
-      color: '#818cf8',
-      fontSize: '0.85rem',
-      fontWeight: 500,
-      marginBottom: '1rem'
-    }}>
-      Assigned to: {assignee}
-    </div>
-    <p style={{ color: '#94a3b8', fontSize: '0.925rem', lineHeight: 1.5 }}>
-      {description}
-    </p>
-  </div>
-);
+import Overview from './pages/Overview';
+import Campaigns from './pages/Campaigns';
+import Analytics from './pages/Analytics';
+import Gamification from './pages/Gamification';
+import EventStream from './pages/EventStream';
+import Automations from './pages/Automations';
+import Settings from './pages/Settings';
+import Banners from './pages/Banners';
 
 export default function Dashboard({ token, onLogout }) {
-  const [activeTab, setactiveTab] = useState('overview');
-  const [activeSubPage, setactiveSubPage] = useState('list');
+  const [storeName, setStoreName] = useState('Maison Lune - Paris');
+  const [campaigns, setCampaigns] = useState([]);
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [newCampaignName, setNewCampaignName] = useState('Weekend comeback');
+  const navigate = useNavigate();
+
+  const fetchCampaigns = () => {
+    fetch('/api/v1/campaigns/', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => {
+        if (res.status === 401 && onLogout) {
+          onLogout();
+          return null;
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+          const mapped = data.map(c => ({
+            id: c.id,
+            name: c.name,
+            status: c.status || 'Draft',
+            channel: 'Push + SMS',
+            audience: 'All customers',
+            performance: c.status === 'Active' ? '82% reached' : 'Not started',
+            budget: `€0 / €${c.budget_cap ?? 0}`,
+            budget_cap: c.budget_cap ?? 0,
+            reward_cap: c.reward_cap ?? 0,
+            lastUpdated: 'Today'
+          }));
+          setCampaigns(mapped);
+          if (mapped.length > 0 && !selectedCampaign) {
+            setSelectedCampaign(mapped[0]);
+          }
+        }
+      })
+      .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchCampaigns();
+    // Load store name from settings
+    fetch('/api/v1/settings/', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => {
+        if (res.status === 401 && onLogout) {
+          onLogout();
+          return null;
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data && data.store_name) {
+          setStoreName(data.store_name);
+        }
+      })
+      .catch(err => console.error(err));
+  }, [token]);
+
+  const handleCreateCampaign = (customData = {}) => {
+    const payload = {
+      name: customData.name || newCampaignName,
+      targeting_criteria: customData.targeting_criteria || { audience: "All customers" },
+      schedule: customData.schedule || { type: "Run continuously" },
+      budget_cap: customData.budget_cap ? parseFloat(customData.budget_cap) : 1000,
+      reward_cap: customData.reward_cap ? parseInt(customData.reward_cap) : 500
+    };
+
+    fetch('/api/v1/campaigns/', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(newCamp => {
+        fetchCampaigns();
+        if (newCamp && newCamp.id) {
+          setSelectedCampaign({
+            id: newCamp.id,
+            name: newCamp.name,
+            status: newCamp.status || 'Draft',
+            budget_cap: newCamp.budget_cap ?? 1000,
+            reward_cap: newCamp.reward_cap ?? 500
+          });
+        }
+        navigate('/campaigns');
+      })
+      .catch(err => console.error(err));
+  };
+
+  const handleSelectCampaign = (c) => {
+    setSelectedCampaign(c);
+    navigate(`/campaigns/${c.id}/analytics`);
+  };
 
   return (
     <div className="app-layout">
-      <Sidebar activeTab={activeTab} setactiveTab={setactiveTab} setactiveSubPage={setactiveSubPage} />
+      <Sidebar storeName={storeName} />
       <div className="main-content">
-        <Topbar activeTab={activeTab} activeSubPage={activeSubPage} onLogout={onLogout} />
+        <Topbar 
+          onLogout={onLogout} 
+          selectedCampaign={selectedCampaign}
+        />
 
-        {activeTab === "overview" && (
-          <ModulePlaceholder
-            title="Overview & Metrics"
-            assignee="Suresh"
-            description="Overview dashboard with system KPIs, active campaigns summary, and high-level engagement stats."
+        <Routes>
+          <Route path="/" element={<Navigate to="/overview" replace />} />
+          <Route 
+            path="/overview" 
+            element={<Overview token={token} />} 
           />
-        )}
-
-        {activeTab === "campaigns" && (
-          <ModulePlaceholder
-            title="Campaigns Management"
-            assignee="Suresh"
-            description="Campaign creation, target audience selection, scheduling, budget controls, and campaign performance."
+          <Route 
+            path="/campaigns" 
+            element={
+              <Campaigns 
+                activeSubPage="list" 
+                campaigns={campaigns} 
+                newCampaignName={newCampaignName} 
+                setNewCampaignName={setNewCampaignName} 
+                handleCreateCampaign={handleCreateCampaign} 
+                onSelectCampaign={handleSelectCampaign}
+                token={token}
+                onRefreshCampaigns={fetchCampaigns}
+              />
+            } 
           />
-        )}
-
-        {activeTab === "automations" && (
-          <ModulePlaceholder
-            title="Automations & Rules"
-            assignee="Suresh"
-            description="Automated trigger-action flows, win-back series, birthday rewards, and rule configuration."
+          <Route 
+            path="/campaigns/create" 
+            element={
+              <Campaigns 
+                activeSubPage="create" 
+                campaigns={campaigns} 
+                newCampaignName={newCampaignName} 
+                setNewCampaignName={setNewCampaignName} 
+                handleCreateCampaign={handleCreateCampaign} 
+                onSelectCampaign={handleSelectCampaign}
+                token={token}
+                onRefreshCampaigns={fetchCampaigns}
+              />
+            } 
           />
-        )}
-
-        {activeTab === "analytics" && (
-          <ModulePlaceholder
-            title="Analytics & Reports"
-            assignee="Meg"
-            description="Conversion funnel tracking, channel attribution, revenue trends, and exportable campaign reports."
+          <Route 
+            path="/campaigns/:id/analytics" 
+            element={
+              <Analytics 
+                activeSubPage="details" 
+                token={token}
+                selectedCampaign={selectedCampaign}
+                onCampaignUpdated={fetchCampaigns}
+                campaigns={campaigns}
+              />
+            } 
           />
-        )}
-
-        {activeTab === "event-stream" && (
-          <ModulePlaceholder
-            title="Real-Time Event Stream"
-            assignee="Meg"
-            description="Live feed of incoming customer events, purchase notifications, and dispatch status."
+          <Route 
+            path="/analytics" 
+            element={
+              <Analytics 
+                activeSubPage="details" 
+                token={token}
+                selectedCampaign={selectedCampaign}
+                onCampaignUpdated={fetchCampaigns}
+                campaigns={campaigns}
+              />
+            } 
           />
-        )}
-
-        {activeTab === "gamification" && (
-          <ModulePlaceholder
-            title="Gamification Engine"
-            assignee="Meg"
-            description="Interactive rewards, Spin-to-Win games, scratch cards, and reward distribution templates."
+          <Route 
+            path="/automations" 
+            element={
+              <Automations 
+                token={token} 
+                campaigns={campaigns}
+              />
+            } 
           />
-        )}
+          <Route 
+            path="/gamification" 
+            element={
+              <Gamification 
+                activeSubPage="list" 
+                token={token} 
+                campaigns={campaigns}
+              />
+            } 
+          />
+          <Route 
+            path="/event-stream" 
+            element={
+              <EventStream token={token} />
+            } 
+          />
+          <Route 
+            path="/banners" 
+            element={
+              <Banners token={token} campaigns={campaigns} />
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <Settings 
+                token={token} 
+                onUpdateStoreName={setStoreName} 
+              />
+            } 
+          />
+          <Route path="*" element={<Navigate to="/overview" replace />} />
+        </Routes>
       </div>
     </div>
   );

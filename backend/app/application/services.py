@@ -141,3 +141,4 @@ def delete_banner(db: Session, banner_id: str):
         db.delete(db_banner)
         db.commit()
     return db_banner
+
