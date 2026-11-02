@@ -72,6 +72,7 @@ export default function Dashboard({ token, onLogout }) {
         }
       })
       .catch(err => console.error(err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const handleCreateCampaign = (customData = {}) => {

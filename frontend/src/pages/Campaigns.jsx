@@ -80,28 +80,28 @@ export default function Campaigns({
         </div>
 
         <div className="filter-bar">
-          <div className="status-summary" style={{ display: 'flex', gap: '8px' }}>
+          <div className="status-summary" style={{ display: 'flex', gap: '12px' }}>
             <span 
               onClick={() => setStatusFilter('All')} 
-              style={{ cursor: 'pointer', fontWeight: statusFilter === 'All' ? '700' : '500', color: statusFilter === 'All' ? '#6366F1' : '#64748B' }}
+              style={{ cursor: 'pointer', fontWeight: statusFilter === 'All' ? '700' : '500', color: statusFilter === 'All' ? 'var(--loyum-navy)' : 'var(--loyum-text-muted)', borderBottom: statusFilter === 'All' ? '2px solid var(--loyum-gold)' : '2px solid transparent', paddingBottom: '4px' }}
             >
               All {allCount}
             </span>
             <span 
               onClick={() => setStatusFilter('Active')} 
-              style={{ cursor: 'pointer', fontWeight: statusFilter === 'Active' ? '700' : '500', color: statusFilter === 'Active' ? '#6366F1' : '#64748B' }}
+              style={{ cursor: 'pointer', fontWeight: statusFilter === 'Active' ? '700' : '500', color: statusFilter === 'Active' ? 'var(--loyum-navy)' : 'var(--loyum-text-muted)', borderBottom: statusFilter === 'Active' ? '2px solid var(--loyum-gold)' : '2px solid transparent', paddingBottom: '4px' }}
             >
               Active {activeCount}
             </span>
             <span 
               onClick={() => setStatusFilter('Draft')} 
-              style={{ cursor: 'pointer', fontWeight: statusFilter === 'Draft' ? '700' : '500', color: statusFilter === 'Draft' ? '#6366F1' : '#64748B' }}
+              style={{ cursor: 'pointer', fontWeight: statusFilter === 'Draft' ? '700' : '500', color: statusFilter === 'Draft' ? 'var(--loyum-navy)' : 'var(--loyum-text-muted)', borderBottom: statusFilter === 'Draft' ? '2px solid var(--loyum-gold)' : '2px solid transparent', paddingBottom: '4px' }}
             >
               Draft {draftCount}
             </span>
             <span 
               onClick={() => setStatusFilter('Paused')} 
-              style={{ cursor: 'pointer', fontWeight: statusFilter === 'Paused' ? '700' : '500', color: statusFilter === 'Paused' ? '#6366F1' : '#64748B' }}
+              style={{ cursor: 'pointer', fontWeight: statusFilter === 'Paused' ? '700' : '500', color: statusFilter === 'Paused' ? 'var(--loyum-navy)' : 'var(--loyum-text-muted)', borderBottom: statusFilter === 'Paused' ? '2px solid var(--loyum-gold)' : '2px solid transparent', paddingBottom: '4px' }}
             >
               Paused {pausedCount}
             </span>

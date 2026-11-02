@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LoyumIcon } from '../components/common/LoyumLogo';
 
 const PRESET_TEMPLATES = [
   {
@@ -45,6 +46,33 @@ const PRESET_TEMPLATES = [
 
 const COLOR_THEMES = [
   {
+    id: "loyum_prestige",
+    name: "LOYUM Prestige Navy & Gold",
+    bg: "linear-gradient(135deg, #00122B 0%, #001F46 60%, #0A2E63 100%)",
+    accent: "#F2B12F",
+    accentBg: "rgba(242, 177, 47, 0.2)",
+    textColor: "#FFFFFF",
+    border: "1px solid rgba(242, 177, 47, 0.45)"
+  },
+  {
+    id: "loyum_sable",
+    name: "LOYUM Sable & Brun Profond",
+    bg: "linear-gradient(135deg, #FAF5ED 0%, #F5DFBB 100%)",
+    accent: "#562C2C",
+    accentBg: "rgba(86, 44, 44, 0.12)",
+    textColor: "#001F46",
+    border: "1px solid rgba(86, 44, 44, 0.3)"
+  },
+  {
+    id: "loyum_brun",
+    name: "LOYUM Brun & Jaune Vif",
+    bg: "linear-gradient(135deg, #3D1C1C 0%, #562C2C 60%, #7A3E3E 100%)",
+    accent: "#F2EA2F",
+    accentBg: "rgba(242, 234, 47, 0.18)",
+    textColor: "#FFFFFF",
+    border: "1px solid rgba(242, 234, 47, 0.35)"
+  },
+  {
     id: "luxury_gold",
     name: "Maison Luxury Gold",
     bg: "linear-gradient(135deg, #1C1917 0%, #292524 50%, #44403C 100%)",
@@ -75,12 +103,13 @@ const COLOR_THEMES = [
     id: "minimal_slate",
     name: "Pure Minimalist",
     bg: "linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)",
-    accent: "#0F172A",
+    accent: "#001F46",
     accentBg: "#F1F5F9",
-    textColor: "#0F172A",
+    textColor: "#001F46",
     border: "1px solid #E2E8F0"
   }
 ];
+
 
 export default function Banners({ token, campaigns = [] }) {
   const [selectedTouchpoint, setSelectedTouchpoint] = useState("pos_screen");
@@ -348,30 +377,30 @@ export default function Banners({ token, campaigns = [] }) {
                   }}
                 />
 
-                {/* Header */}
+                {/* Header with LOYUM Official Brand Seal */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <div style={{ width: "24px", height: "24px", borderRadius: "6px", background: currentTheme.accent, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "bold", fontSize: "0.75rem" }}>
-                      M
-                    </div>
-                    <span style={{ fontSize: "0.85rem", fontWeight: "700", letterSpacing: "1px", textTransform: "uppercase" }}>
-                      Maison Lune · Paris
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <LoyumIcon size={26} fill={currentTheme.accent} letterFill={currentTheme.bg.includes("#001") ? "#001F46" : "#FFFFFF"} />
+                    <span style={{ fontSize: "0.85rem", fontWeight: "800", letterSpacing: "1.5px", textTransform: "uppercase", fontFamily: "var(--font-logo)" }}>
+                      LOYUM · MINDSIT 2024
                     </span>
                   </div>
                   <span
                     style={{
                       fontSize: "0.7rem",
                       fontWeight: "700",
-                      padding: "0.25rem 0.6rem",
+                      padding: "0.25rem 0.65rem",
                       borderRadius: "12px",
                       background: currentTheme.accentBg,
                       color: currentTheme.accent,
-                      border: `1px solid ${currentTheme.accent}`
+                      border: `1px solid ${currentTheme.accent}`,
+                      letterSpacing: "0.5px"
                     }}
                   >
-                    EXCLUSIVITÉ
+                    SCEAU OFFICIEL
                   </span>
                 </div>
+
 
                 {/* Main Offer Content */}
                 <div style={{ margin: selectedTouchpoint === "story_9_16" ? "4rem 0" : "2rem 0" }}>

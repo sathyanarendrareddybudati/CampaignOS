@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import LoyumLogo from '../common/LoyumLogo';
 
 export default function Sidebar({ storeName }) {
   const location = useLocation();
@@ -17,11 +18,20 @@ export default function Sidebar({ storeName }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <h2 className="logo" onClick={() => navigate('/overview')} style={{ cursor: 'pointer' }}>Loyum</h2>
+        <div 
+          className="brand-logo-container" 
+          onClick={() => navigate('/overview')} 
+          style={{ cursor: 'pointer', marginBottom: '1.25rem' }}
+        >
+          <LoyumLogo variant="horizontal" theme="dark" size="md" />
+        </div>
         <div className="account-selector" onClick={() => navigate('/settings')} style={{ cursor: 'pointer' }}>
           <div className="account-info">
             <span className="account-name">{storeName || 'Maison Lune - Paris'}</span>
-            <span className="account-role">Merchant account</span>
+            <span className="account-role">
+              <span className="badge-dot-gold"></span>
+              Merchant Node • Active
+            </span>
           </div>
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="chevron-icon"><polyline points="8 17 12 21 16 17"></polyline><polyline points="8 7 12 3 16 7"></polyline></svg>
         </div>

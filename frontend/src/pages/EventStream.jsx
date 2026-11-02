@@ -32,6 +32,7 @@ export default function EventStream({ token }) {
       }
     }, 5000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, isPaused]);
 
   const filteredEvents = events.filter(ev => {
@@ -87,7 +88,7 @@ export default function EventStream({ token }) {
           <button 
             className="btn-primary" 
             onClick={() => setShowSimulateModal(true)}
-            style={{ width: 'auto', padding: '0.6rem 1rem', background: '#6366F1' }}
+            style={{ width: 'auto', padding: '0.6rem 1rem' }}
           >
             ⚡ Simulate Event
           </button>

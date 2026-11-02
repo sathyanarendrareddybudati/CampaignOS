@@ -24,7 +24,9 @@ export default function Analytics({ token, selectedCampaign, onCampaignUpdated, 
   const [activeMetricTab, setActiveMetricTab] = useState('revenue');
   const [timeframe, setTimeframe] = useState('30d');
   const [channel, setChannel] = useState('all');
+  const [hoveredChannel, setHoveredChannel] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
+
   const targetId = id || selectedCampaign?.id;
   const currentCampaign = campaigns.find(c => c.id === targetId) || selectedCampaign;
   const [currentStatus, setCurrentStatus] = useState(currentCampaign?.status || 'Active');
@@ -99,14 +101,16 @@ export default function Analytics({ token, selectedCampaign, onCampaignUpdated, 
   };
 
   const campaignTitle = currentCampaign?.name || data.name || "Campaign Analytics";
-
+  const pushPct = data.channel_mix?.push ?? 48;
+  const smsPct = data.channel_mix?.sms ?? 32;
+  const adPct = data.channel_mix?.ad ?? 20;
   const metricConfigs = {
     reach: {
       label: 'Reach',
-      color: '#6366F1',
-      bgActive: '#EEF2FF',
-      borderActive: '#C7D2FE',
-      textActive: '#4338CA',
+      color: '#001F46',
+      bgActive: '#001F46',
+      borderActive: '#00122B',
+      textActive: '#FFFFFF',
       dotClass: 'purple',
       path: timeframe === 'today'
         ? "M0,170 C100,160 200,140 300,110 400,80 500,45"
@@ -119,11 +123,11 @@ export default function Analytics({ token, selectedCampaign, onCampaignUpdated, 
     },
     conversions: {
       label: 'Conversions',
-      color: '#10B981',
-      bgActive: '#ECFDF5',
-      borderActive: '#A7F3D0',
-      textActive: '#065F46',
-      dotClass: 'green',
+      color: '#F2B12F',
+      bgActive: '#F2B12F',
+      borderActive: '#D99B22',
+      textActive: '#001F46',
+      dotClass: 'orange',
       path: timeframe === 'today'
         ? "M0,185 C100,175 200,150 300,120 400,90 500,60"
         : timeframe === '7d'
@@ -135,11 +139,11 @@ export default function Analytics({ token, selectedCampaign, onCampaignUpdated, 
     },
     revenue: {
       label: 'Revenue',
-      color: '#8B5CF6',
-      bgActive: '#F5F3FF',
-      borderActive: '#DDD6FE',
-      textActive: '#5B21B6',
-      dotClass: 'purple',
+      color: '#562C2C',
+      bgActive: '#562C2C',
+      borderActive: '#3D1C1C',
+      textActive: '#FFFFFF',
+      dotClass: 'green',
       path: timeframe === 'today'
         ? "M0,180 C100,170 200,140 300,105 400,70 500,40"
         : timeframe === '7d'
@@ -167,7 +171,7 @@ export default function Analytics({ token, selectedCampaign, onCampaignUpdated, 
             <div 
               className="back-link" 
               onClick={() => navigate('/campaigns')}
-              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '0.5rem', color: '#6366F1', fontWeight: '500' }}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '0.5rem', color: 'var(--loyum-navy)', fontWeight: '600' }}
             >
               &larr; All campaigns
             </div>
@@ -329,32 +333,235 @@ export default function Analytics({ token, selectedCampaign, onCampaignUpdated, 
               </div>
             </div>
           </div>
-          <div className="card chart-card" style={{ padding: "1.5rem" }}>
-            <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.1rem" }}>Channel mix</h3>
-            <p className="section-desc">Attributed conversions by channel</p>
-            <div className="donut-placeholder" style={{ marginTop: "1rem" }}>
-              <svg viewBox="0 0 36 36" className="circular-chart">
-                <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path className="circle purple" strokeDasharray="48, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path className="circle green" strokeDasharray="32, 100" strokeDashoffset="-48" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path className="circle orange" strokeDasharray="20, 100" strokeDashoffset="-80" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <text x="18" y="18.5" className="percentage">{channel === 'push' ? '48%' : channel === 'sms' ? '32%' : '100%'}</text>
-                <text x="18" y="14" className="percentage-label">{channel === 'push' ? 'Push' : channel === 'sms' ? 'SMS' : 'Total'}</text>
-              </svg>
-              <div className="donut-legend" style={{ marginTop: "1.2rem" }}>
-                <div className="dl-item" style={{ opacity: channel === 'all' || channel === 'push' ? 1 : 0.4 }}>
-                  <span className="dot purple"></span> Push <strong>48%</strong>
+          <div className="card chart-card channel-mix-card" style={{ padding: "1.75rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.25rem" }}>
+              <div>
+                <h3 style={{ margin: "0 0 0.35rem 0", fontSize: "1.15rem", color: "var(--loyum-navy)" }}>Channel mix</h3>
+                <p className="section-desc" style={{ margin: 0 }}>Attributed conversions by channel</p>
+              </div>
+              {channel !== 'all' && (
+                <button 
+                  onClick={() => setChannel('all')}
+                  style={{
+                    fontSize: '0.72rem',
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    background: 'var(--loyum-sand-soft)',
+                    border: '1px solid var(--loyum-sand-border)',
+                    color: 'var(--loyum-navy)',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  View All
+                </button>
+              )}
+            </div>
+
+            {/* Modern Interactive LOYUM Donut Chart */}
+            <div className="donut-chart-container">
+              <div className="donut-svg-wrapper">
+                <svg viewBox="0 0 200 200" className="donut-svg">
+                  <defs>
+                    <linearGradient id="loyumPushGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#00122B" />
+                      <stop offset="100%" stopColor="#0A2E63" />
+                    </linearGradient>
+                    <linearGradient id="loyumSmsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#F2B12F" />
+                      <stop offset="100%" stopColor="#E5A31E" />
+                    </linearGradient>
+                    <linearGradient id="loyumAdGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#3D1C1C" />
+                      <stop offset="100%" stopColor="#7A3E3E" />
+                    </linearGradient>
+                    <filter id="donutGlow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#001F46" floodOpacity="0.25"/>
+                    </filter>
+                  </defs>
+
+                  {/* Base Track */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="72"
+                    fill="none"
+                    stroke="#F1F5F9"
+                    strokeWidth="16"
+                  />
+
+                  {/* Slice 1: Push Notifications (#001F46 Bleu Marine) */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="72"
+                    fill="none"
+                    stroke="url(#loyumPushGrad)"
+                    strokeWidth={hoveredChannel === 'push' || channel === 'push' ? "22" : "16"}
+                    strokeDasharray={`${Math.max(0, (pushPct / 100) * 452.39 - 5)} 452.39`}
+                    strokeDashoffset="0"
+                    className="donut-slice"
+                    style={{
+                      opacity: channel === 'all' || channel === 'push' || hoveredChannel === 'push' ? 1 : 0.35,
+                      filter: hoveredChannel === 'push' || channel === 'push' ? 'url(#donutGlow)' : 'none'
+                    }}
+                    onMouseEnter={() => setHoveredChannel('push')}
+                    onMouseLeave={() => setHoveredChannel(null)}
+                    onClick={() => setChannel(channel === 'push' ? 'all' : 'push')}
+                  />
+
+                  {/* Slice 2: SMS Gateway (#F2B12F Orange Doré) */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="72"
+                    fill="none"
+                    stroke="url(#loyumSmsGrad)"
+                    strokeWidth={hoveredChannel === 'sms' || channel === 'sms' ? "22" : "16"}
+                    strokeDasharray={`${Math.max(0, (smsPct / 100) * 452.39 - 5)} 452.39`}
+                    strokeDashoffset={`${-((pushPct / 100) * 452.39)}`}
+                    className="donut-slice"
+                    style={{
+                      opacity: channel === 'all' || channel === 'sms' || hoveredChannel === 'sms' ? 1 : 0.35,
+                      filter: hoveredChannel === 'sms' || channel === 'sms' ? 'url(#donutGlow)' : 'none'
+                    }}
+                    onMouseEnter={() => setHoveredChannel('sms')}
+                    onMouseLeave={() => setHoveredChannel(null)}
+                    onClick={() => setChannel(channel === 'sms' ? 'all' : 'sms')}
+                  />
+
+                  {/* Slice 3: In-Store & Ads (#562C2C Brun Profond) */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="72"
+                    fill="none"
+                    stroke="url(#loyumAdGrad)"
+                    strokeWidth={hoveredChannel === 'ad' || channel === 'ad' ? "22" : "16"}
+                    strokeDasharray={`${Math.max(0, (adPct / 100) * 452.39 - 5)} 452.39`}
+                    strokeDashoffset={`${-(((pushPct + smsPct) / 100) * 452.39)}`}
+                    className="donut-slice"
+                    style={{
+                      opacity: channel === 'all' || channel === 'ad' || hoveredChannel === 'ad' ? 1 : 0.35,
+                      filter: hoveredChannel === 'ad' || channel === 'ad' ? 'url(#donutGlow)' : 'none'
+                    }}
+                    onMouseEnter={() => setHoveredChannel('ad')}
+                    onMouseLeave={() => setHoveredChannel(null)}
+                    onClick={() => setChannel(channel === 'ad' ? 'all' : 'ad')}
+                  />
+                </svg>
+
+                {/* Center Stats Display */}
+                <div className="donut-center-info">
+                  {(!hoveredChannel && channel === 'all') && (
+                    <>
+                      <span className="donut-center-pct">{data.conversions || '434'}</span>
+                      <span className="donut-center-label">Total Conversions</span>
+                      <span className="donut-center-sub">3 Channels Active</span>
+                    </>
+                  )}
+                  {(hoveredChannel === 'push' || (channel === 'push' && !hoveredChannel)) && (
+                    <>
+                      <span className="donut-center-pct" style={{ color: "var(--loyum-navy)" }}>{pushPct}%</span>
+                      <span className="donut-center-label">Push Alerts</span>
+                      <span className="donut-center-sub">{Math.round(parseInt(String(data.conversions || '434').replace(/[^0-9]/g, '')) * (pushPct / 100))} Conv.</span>
+                    </>
+                  )}
+                  {(hoveredChannel === 'sms' || (channel === 'sms' && !hoveredChannel)) && (
+                    <>
+                      <span className="donut-center-pct" style={{ color: "var(--loyum-gold)" }}>{smsPct}%</span>
+                      <span className="donut-center-label">SMS Direct</span>
+                      <span className="donut-center-sub">{Math.round(parseInt(String(data.conversions || '434').replace(/[^0-9]/g, '')) * (smsPct / 100))} Conv.</span>
+                    </>
+                  )}
+                  {(hoveredChannel === 'ad' || (channel === 'ad' && !hoveredChannel)) && (
+                    <>
+                      <span className="donut-center-pct" style={{ color: "var(--loyum-brown)" }}>{adPct}%</span>
+                      <span className="donut-center-label">Ads & POS</span>
+                      <span className="donut-center-sub">{Math.round(parseInt(String(data.conversions || '434').replace(/[^0-9]/g, '')) * (adPct / 100))} Conv.</span>
+                    </>
+                  )}
                 </div>
-                <div className="dl-item" style={{ opacity: channel === 'all' || channel === 'sms' ? 1 : 0.4 }}>
-                  <span className="dot green"></span> SMS <strong>32%</strong>
+              </div>
+
+              {/* Enhanced Interactive Channel Mix List */}
+              <div className="channel-mix-list">
+                {/* Push Row */}
+                <div 
+                  className={`channel-mix-item ${channel === 'push' ? 'active' : ''}`}
+                  onClick={() => setChannel(channel === 'push' ? 'all' : 'push')}
+                  onMouseEnter={() => setHoveredChannel('push')}
+                  onMouseLeave={() => setHoveredChannel(null)}
+                >
+                  <div className="channel-mix-item-header">
+                    <span className="channel-mix-item-title">
+                      <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--loyum-navy)", display: "inline-block" }}></span>
+                      Push Notifications
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "0.78rem", color: "var(--loyum-text-muted)" }}>
+                        {Math.round(parseInt(String(data.conversions || '434').replace(/[^0-9]/g, '')) * (pushPct / 100))} conv.
+                      </span>
+                      <span style={{ fontWeight: 800, fontSize: "0.85rem", color: "var(--loyum-navy)" }}>{pushPct}%</span>
+                    </div>
+                  </div>
+                  <div className="channel-mix-bar-bg">
+                    <div className="channel-mix-bar-fill" style={{ width: `${pushPct}%`, background: "linear-gradient(90deg, #00122B, #0A2E63)" }}></div>
+                  </div>
                 </div>
-                <div className="dl-item" style={{ opacity: channel === 'all' ? 1 : 0.4 }}>
-                  <span className="dot orange"></span> Ad <strong>20%</strong>
+
+                {/* SMS Row */}
+                <div 
+                  className={`channel-mix-item ${channel === 'sms' ? 'active' : ''}`}
+                  onClick={() => setChannel(channel === 'sms' ? 'all' : 'sms')}
+                  onMouseEnter={() => setHoveredChannel('sms')}
+                  onMouseLeave={() => setHoveredChannel(null)}
+                >
+                  <div className="channel-mix-item-header">
+                    <span className="channel-mix-item-title">
+                      <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--loyum-gold)", display: "inline-block" }}></span>
+                      SMS Gateway
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "0.78rem", color: "var(--loyum-text-muted)" }}>
+                        {Math.round(parseInt(String(data.conversions || '434').replace(/[^0-9]/g, '')) * (smsPct / 100))} conv.
+                      </span>
+                      <span style={{ fontWeight: 800, fontSize: "0.85rem", color: "var(--loyum-gold)" }}>{smsPct}%</span>
+                    </div>
+                  </div>
+                  <div className="channel-mix-bar-bg">
+                    <div className="channel-mix-bar-fill" style={{ width: `${smsPct}%`, background: "linear-gradient(90deg, #E5A31E, #F2B12F)" }}></div>
+                  </div>
+                </div>
+
+                {/* Ad Row */}
+                <div 
+                  className={`channel-mix-item ${channel === 'ad' ? 'active' : ''}`}
+                  onClick={() => setChannel(channel === 'ad' ? 'all' : 'ad')}
+                  onMouseEnter={() => setHoveredChannel('ad')}
+                  onMouseLeave={() => setHoveredChannel(null)}
+                >
+                  <div className="channel-mix-item-header">
+                    <span className="channel-mix-item-title">
+                      <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--loyum-brown)", display: "inline-block" }}></span>
+                      In-Store & Digital Ads
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "0.78rem", color: "var(--loyum-text-muted)" }}>
+                        {Math.round(parseInt(String(data.conversions || '434').replace(/[^0-9]/g, '')) * (adPct / 100))} conv.
+                      </span>
+                      <span style={{ fontWeight: 800, fontSize: "0.85rem", color: "var(--loyum-brown)" }}>{adPct}%</span>
+                    </div>
+                  </div>
+                  <div className="channel-mix-bar-bg">
+                    <div className="channel-mix-bar-fill" style={{ width: `${adPct}%`, background: "linear-gradient(90deg, #3D1C1C, #7A3E3E)" }}></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
 
         <div className="card">
           <h3>Execution log</h3>

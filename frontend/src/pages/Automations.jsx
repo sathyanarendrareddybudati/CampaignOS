@@ -11,7 +11,7 @@ export default function Automations({ token, campaigns = [] }) {
   // Form state
   const [newAction, setNewAction] = useState('Send Welcome Email');
   const [newTrigger, setNewTrigger] = useState('user.signup');
-  const [selectedCampaignId, setSelectedCampaignId] = useState('');
+  const [selectedCampaignId, setSelectedCampaignId] = useState(() => campaigns[0]?.id || '');
 
   const fetchRules = () => {
     fetch('/api/v1/campaigns/rules/all', {
@@ -41,13 +41,9 @@ export default function Automations({ token, campaigns = [] }) {
 
   useEffect(() => {
     fetchRules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  useEffect(() => {
-    if (campaigns.length > 0 && !selectedCampaignId) {
-      setSelectedCampaignId(campaigns[0].id);
-    }
-  }, [campaigns]);
 
   const handleCreateAutomation = (e) => {
     e.preventDefault();
@@ -146,20 +142,21 @@ export default function Automations({ token, campaigns = [] }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.25rem 1.5rem", borderBottom: "1px solid #E2E8F0", background: "white" }}>
           <h3 style={{ margin: "0", fontSize: "1.1rem" }}>Your automations ({automations.length})</h3>
           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <div style={{ background: "#F1F5F9", borderRadius: "6px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", color: "#475569" }}>
+            <div style={{ background: "var(--loyum-sand-soft)", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", border: "1px solid var(--loyum-sand-border)" }}>
               <span 
                 onClick={() => setStatusFilter('All')} 
-                style={{ cursor: 'pointer', fontWeight: statusFilter === 'All' ? "700" : "500", color: statusFilter === 'All' ? "#6366F1" : "#0F172A", marginRight: "8px" }}
+                style={{ cursor: 'pointer', fontWeight: statusFilter === 'All' ? "700" : "500", color: statusFilter === 'All' ? "var(--loyum-navy)" : "var(--loyum-text-muted)", marginRight: "12px" }}
               >
                 All {automations.length}
               </span>
               <span 
                 onClick={() => setStatusFilter('Active')} 
-                style={{ cursor: 'pointer', fontWeight: statusFilter === 'Active' ? "700" : "500", color: statusFilter === 'Active' ? "#6366F1" : "#475569" }}
+                style={{ cursor: 'pointer', fontWeight: statusFilter === 'Active' ? "700" : "500", color: statusFilter === 'Active' ? "var(--loyum-navy)" : "var(--loyum-text-muted)" }}
               >
                 Active {automations.length}
               </span>
             </div>
+
             <div className="search-box" style={{ margin: "0" }}>
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="#94A3B8" strokeWidth="2" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
               <input 

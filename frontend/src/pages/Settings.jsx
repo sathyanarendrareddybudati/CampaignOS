@@ -72,7 +72,8 @@ export default function Settings({ token, onUpdateStoreName }) {
         console.error('Failed to load settings:', err);
         setLoading(false);
       });
-  }, [token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, onUpdateStoreName]);
 
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -413,7 +414,7 @@ export default function Settings({ token, onUpdateStoreName }) {
                     type="checkbox"
                     checked={form.auto_pause_on_budget === 'true'}
                     onChange={e => handleChange('auto_pause_on_budget', e.target.checked ? 'true' : 'false')}
-                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#6366F1' }}
+                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#001F46' }}
                   />
                 </div>
               </div>
@@ -439,7 +440,7 @@ export default function Settings({ token, onUpdateStoreName }) {
                     type="checkbox"
                     checked={form.push_enabled === 'true'}
                     onChange={e => handleChange('push_enabled', e.target.checked ? 'true' : 'false')}
-                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#6366F1' }}
+                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#001F46' }}
                   />
                 </div>
 
@@ -454,7 +455,7 @@ export default function Settings({ token, onUpdateStoreName }) {
                     type="checkbox"
                     checked={form.sms_enabled === 'true'}
                     onChange={e => handleChange('sms_enabled', e.target.checked ? 'true' : 'false')}
-                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#6366F1' }}
+                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#001F46' }}
                   />
                 </div>
 
@@ -469,7 +470,7 @@ export default function Settings({ token, onUpdateStoreName }) {
                     type="checkbox"
                     checked={form.email_notifications === 'true'}
                     onChange={e => handleChange('email_notifications', e.target.checked ? 'true' : 'false')}
-                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#6366F1' }}
+                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#001F46' }}
                   />
                 </div>
               </div>

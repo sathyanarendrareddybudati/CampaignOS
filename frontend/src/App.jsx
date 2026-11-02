@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import AuthPage from './pages/AuthPage'
 import Dashboard from './Dashboard'
+import ErrorBoundary from './components/common/ErrorBoundary'
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || null)
@@ -20,16 +21,18 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route 
-        path="/login" 
-        element={token ? <Navigate to="/overview" replace /> : <AuthPage onLogin={handleLogin} />} 
-      />
-      <Route 
-        path="/*" 
-        element={token ? <Dashboard token={token} onLogout={handleLogout} /> : <Navigate to="/login" replace />} 
-      />
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        <Route 
+          path="/login" 
+          element={token ? <Navigate to="/overview" replace /> : <AuthPage onLogin={handleLogin} />} 
+        />
+        <Route 
+          path="/*" 
+          element={token ? <Dashboard token={token} onLogout={handleLogout} /> : <Navigate to="/login" replace />} 
+        />
+      </Routes>
+    </ErrorBoundary>
   )
 }
 

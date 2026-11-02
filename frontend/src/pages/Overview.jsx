@@ -31,7 +31,7 @@ export default function Overview({ token, userName }) {
   const metricConfigs = {
     reach: {
       label: 'Reach',
-      color: '#6366F1',
+      color: '#001F46',
       dotClass: 'purple',
       path: "M0,170 L40,165 L80,170 L120,150 L160,155 L200,135 L240,145 L280,130 L320,138 L360,118 L400,125 L440,105 L480,110 L500,80",
       endY: 80,
@@ -40,8 +40,8 @@ export default function Overview({ token, userName }) {
     },
     conversions: {
       label: 'Conversions',
-      color: '#10B981',
-      dotClass: 'green',
+      color: '#F2B12F',
+      dotClass: 'orange',
       path: "M0,185 L50,180 L100,175 L150,160 L200,140 L250,150 L300,120 L350,110 L400,95 L450,75 L500,50",
       endY: 50,
       primaryText: `${data.conversions || '434'} total conversions`,
@@ -49,8 +49,8 @@ export default function Overview({ token, userName }) {
     },
     revenue: {
       label: 'Revenue',
-      color: '#8B5CF6',
-      dotClass: 'purple',
+      color: '#562C2C',
+      dotClass: 'green',
       path: "M0,180 L50,170 L100,160 L150,150 L200,130 L250,135 L300,110 L350,90 L400,80 L450,60 L500,35",
       endY: 35,
       primaryText: data.attributed_revenue || "€8,778 attributed revenue",
@@ -68,6 +68,56 @@ export default function Overview({ token, userName }) {
           <p className="page-subtitle">Here's what's happening across your campaigns today.</p>
         </div>
         <button className="btn-primary" onClick={() => navigate('/campaigns/create')}>+ Create campaign</button>
+      </div>
+
+      {/* LOYUM Loyalty Card Hero Showcase */}
+      <div className="loyum-card-hero">
+        <div className="loyum-hero-content">
+          <div className="loyum-hero-badge">
+            <span>⚜</span> MINDSIT 2024 • OFFICIAL LOYALTY CARD PASS
+          </div>
+          <h2 className="loyum-hero-title">Ma Carte LOYUM Active</h2>
+          <p className="loyum-hero-desc">
+            Your brand's official wax seal loyalty passes are issued automatically upon in-store checkout or QR scan. Elevate customer prestige and track recurring lifetime value.
+          </p>
+          <div className="loyum-hero-stats">
+            <div className="loyum-hero-stat-item">
+              <strong>84.2%</strong>
+              <span>Pass Enrollment</span>
+            </div>
+            <div className="loyum-hero-stat-item">
+              <strong>€42.80</strong>
+              <span>Avg VIP Basket</span>
+            </div>
+            <div className="loyum-hero-stat-item">
+              <strong>+32%</strong>
+              <span>Retention Lift</span>
+            </div>
+          </div>
+          <div style={{ marginTop: '1.25rem', display: 'flex', gap: '10px' }}>
+            <button 
+              className="btn-gold" 
+              onClick={() => navigate('/gamification')}
+              style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+            >
+              Configure Loyalty Games
+            </button>
+            <button 
+              className="btn-secondary" 
+              onClick={() => navigate('/banners')}
+              style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', background: 'rgba(255,255,255,0.15)', color: '#FFF', borderColor: 'rgba(245, 223, 187, 0.4)' }}
+            >
+              Export POS Displays
+            </button>
+          </div>
+        </div>
+        <div className="loyum-card-mockup-wrapper">
+          <img 
+            src="/brand/Carte2-Test.png" 
+            alt="Ma Carte LOYUM" 
+            className="loyum-card-img" 
+          />
+        </div>
       </div>
 
       <div className="stats-cards" style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: "1.5rem", marginBottom: "1.5rem" }}>
@@ -104,10 +154,10 @@ export default function Overview({ token, userName }) {
                 padding: "0.35rem 0.85rem",
                 borderRadius: "6px",
                 fontSize: "0.8rem",
-                background: activeMetricTab === 'reach' ? "#EEF2FF" : "#F8FAFC",
-                border: activeMetricTab === 'reach' ? "1px solid #C7D2FE" : "1px solid transparent",
-                color: activeMetricTab === 'reach' ? "#4338CA" : "#64748B",
-                fontWeight: activeMetricTab === 'reach' ? "600" : "500",
+                background: activeMetricTab === 'reach' ? "#001F46" : "#FAF5ED",
+                border: activeMetricTab === 'reach' ? "1px solid #001F46" : "1px solid #E8D9C0",
+                color: activeMetricTab === 'reach' ? "#FFFFFF" : "#001F46",
+                fontWeight: activeMetricTab === 'reach' ? "700" : "500",
                 cursor: "pointer",
                 boxShadow: "none"
               }}
@@ -121,10 +171,10 @@ export default function Overview({ token, userName }) {
                 padding: "0.35rem 0.85rem",
                 borderRadius: "6px",
                 fontSize: "0.8rem",
-                background: activeMetricTab === 'conversions' ? "#ECFDF5" : "#F8FAFC",
-                border: activeMetricTab === 'conversions' ? "1px solid #A7F3D0" : "1px solid transparent",
-                color: activeMetricTab === 'conversions' ? "#065F46" : "#64748B",
-                fontWeight: activeMetricTab === 'conversions' ? "600" : "500",
+                background: activeMetricTab === 'conversions' ? "#F2B12F" : "#FAF5ED",
+                border: activeMetricTab === 'conversions' ? "1px solid #D99B22" : "1px solid #E8D9C0",
+                color: activeMetricTab === 'conversions' ? "#001F46" : "#001F46",
+                fontWeight: activeMetricTab === 'conversions' ? "700" : "500",
                 cursor: "pointer",
                 boxShadow: "none"
               }}
@@ -138,10 +188,10 @@ export default function Overview({ token, userName }) {
                 padding: "0.35rem 0.85rem",
                 borderRadius: "6px",
                 fontSize: "0.8rem",
-                background: activeMetricTab === 'revenue' ? "#F5F3FF" : "#F8FAFC",
-                border: activeMetricTab === 'revenue' ? "1px solid #DDD6FE" : "1px solid transparent",
-                color: activeMetricTab === 'revenue' ? "#5B21B6" : "#64748B",
-                fontWeight: activeMetricTab === 'revenue' ? "600" : "500",
+                background: activeMetricTab === 'revenue' ? "#562C2C" : "#FAF5ED",
+                border: activeMetricTab === 'revenue' ? "1px solid #3D1C1C" : "1px solid #E8D9C0",
+                color: activeMetricTab === 'revenue' ? "#FFFFFF" : "#001F46",
+                fontWeight: activeMetricTab === 'revenue' ? "700" : "500",
                 cursor: "pointer",
                 boxShadow: "none"
               }}
@@ -149,6 +199,7 @@ export default function Overview({ token, userName }) {
               Revenue
             </button>
           </div>
+
 
           <div className="chart-placeholder line-chart" style={{ flex: "1", position: "relative", minHeight: "180px", marginTop: "1rem" }}>
             <svg width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="none" style={{ position: "absolute", bottom: "0", left: "0", width: "100%", height: "100%", zIndex: "2" }}>
