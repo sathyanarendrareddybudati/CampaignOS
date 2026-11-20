@@ -212,7 +212,12 @@ export default function Analytics({ token, selectedCampaign, onCampaignUpdated, 
               <option value="push">Push</option>
               <option value="sms">SMS</option>
             </select>
-            <select><option>All audiences</option></select>
+            <select>
+              <option value="all">All audiences</option>
+              <option value="loyalty">VIP Loyalty Passholders</option>
+              <option value="new">New Customers (&lt;30d)</option>
+              <option value="lapsed">Lapsed / Inactive Customers</option>
+            </select>
           </div>
           <div className="sync-status"><span className="dot green"></span> Live event telemetry synced</div>
         </div>

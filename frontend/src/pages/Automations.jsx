@@ -44,6 +44,12 @@ export default function Automations({ token, campaigns = [] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  useEffect(() => {
+    if (campaigns.length > 0 && !selectedCampaignId) {
+      setSelectedCampaignId(campaigns[0].id);
+    }
+  }, [campaigns, selectedCampaignId]);
+
 
   const handleCreateAutomation = (e) => {
     e.preventDefault();

@@ -9,24 +9,25 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./loyalty.db")
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL")
 
-def create_app_engine(url):
-    if not url or url.startswith("sqlite"):
-        return create_engine("sqlite:///./loyalty.db", connect_args={"check_same_thread": False})
-    try:
-        eng = create_engine(
-            url,
-            pool_size=20,
-            max_overflow=30,
-            pool_pre_ping=True
-        )
-        with eng.connect() as conn:
-            pass
-        return eng
-    except Exception as e:
-        logger.warning(f"Failed to connect to primary database ({e}). Falling back to sqlite:///./loyalty.db")
-        return create_engine("sqlite:///./loyalty.db", connect_args={"check_same_thread": False})
+if not SQLALCHEMY_DATABASE_URL:
+    raise ValueError(
+        "DATABASE_URL environment variable is not set. Please define DATABASE_URL in your .env file."
+    )
+
+def create_app_engine(url: str):
+    connect_args = {}
+    if url.startswith("sqlite"):
+        connect_args["check_same_thread"] = False
+
+    return create_engine(
+        url,
+        pool_size=20,
+        max_overflow=30,
+        pool_pre_ping=True,
+        connect_args=connect_args
+    )
 
 engine = create_app_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -39,3 +40,4 @@ def get_db():
         yield db
     finally:
         db.close()
+

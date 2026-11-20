@@ -19,6 +19,7 @@ export default function Campaigns({
   const [objective, setObjective] = useState('Increase repeat visits');
   const [selectedChannels, setSelectedChannels] = useState(['Push', 'SMS']);
   const [actionLoading, setActionLoading] = useState(null);
+  const [nameError, setNameError] = useState('');
 
   // Filter campaigns
   const filteredCampaigns = campaigns.filter(c => {
@@ -59,8 +60,13 @@ export default function Campaigns({
   };
 
   const submitCreate = () => {
+    if (!newCampaignName || !newCampaignName.trim()) {
+      setNameError('Please enter a campaign name');
+      return;
+    }
+    setNameError('');
     handleCreateCampaign({
-      name: newCampaignName,
+      name: newCampaignName.trim(),
       budget_cap: parseFloat(budgetCap) || 1000,
       reward_cap: parseInt(rewardCap) || 500,
       targeting_criteria: { audience: "All customers", objective },
@@ -200,10 +206,16 @@ export default function Campaigns({
               <input 
                 type="text" 
                 value={newCampaignName} 
-                onChange={e => setNewCampaignName(e.target.value)} 
+                onChange={e => { setNewCampaignName(e.target.value); setNameError(''); }} 
                 className="input" 
                 placeholder="e.g. Weekend comeback"
+                style={nameError ? { borderColor: '#EF4444' } : {}}
               />
+              {nameError && (
+                <div style={{ color: '#EF4444', fontSize: '0.78rem', marginTop: '4px', fontWeight: '500' }}>
+                  {nameError}
+                </div>
+              )}
             </div>
 
             <div className="form-group">

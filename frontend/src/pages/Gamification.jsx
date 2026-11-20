@@ -39,6 +39,12 @@ export default function Gamification({ activeSubPage, token, campaigns = [] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  useEffect(() => {
+    if (campaigns.length > 0 && !selectedCampaignId) {
+      setSelectedCampaignId(campaigns[0].id);
+    }
+  }, [campaigns, selectedCampaignId]);
+
   const handlePrizeChange = (index, field, value) => {
     setPrizes(prev => {
       const updated = [...prev];

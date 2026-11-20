@@ -70,14 +70,15 @@ def ingest_event(payload: dict, db: Session = Depends(get_db)):
                 }
 
     # 2. Record single authoritative log entry
-    if first_match:
+    if matched_actions:
+        combined_dispatch = ", ".join(matched_actions) + " adapter"
         event_log = models.EventLog(
             time=time_str,
             event=event_type,
-            rule=first_match["rule"],
-            dispatch=first_match["dispatch"],
-            status=first_match["status"],
-            css_class=first_match["css_class"]
+            rule=first_match["rule"] if first_match else f"Matched: {event_type}",
+            dispatch=combined_dispatch,
+            status="Delivered",
+            css_class="purple" if any("game" in a.lower() for a in matched_actions) else "blue"
         )
     else:
         event_log = models.EventLog(

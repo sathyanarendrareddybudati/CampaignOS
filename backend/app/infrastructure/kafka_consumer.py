@@ -80,6 +80,7 @@ async def consume_events():
                 sasl_plain_username=username,
                 sasl_plain_password=password,
                 ssl_context=context,
+                auto_offset_reset="earliest",
                 group_id="loyalty_engine_group"
             )
             
@@ -104,6 +105,8 @@ async def consume_events():
                         first_match = None
                         time_str = datetime.utcnow().strftime("%H:%M:%S")
 
+                        matched_actions = []
+
                         for r in rules:
                             trigger_event = r.trigger.get("event") if isinstance(r.trigger, dict) else None
                             if trigger_event == event_type:
@@ -115,6 +118,7 @@ async def consume_events():
                                 if email != "unknown@customer.com" and "email" in action_type.lower():
                                     send_email(email, action_type)
                                 
+                                matched_actions.append(action_type)
                                 if not first_match:
                                     first_match = {
                                         "rule": f"Matched: {trigger_event}",
@@ -123,14 +127,15 @@ async def consume_events():
                                         "css_class": "purple" if "game" in action_type.lower() else "blue"
                                     }
 
-                        if first_match:
+                        if matched_actions:
+                            combined_dispatch = ", ".join(matched_actions) + " adapter"
                             event_log = models.EventLog(
                                 time=time_str,
                                 event=event_type,
-                                rule=first_match["rule"],
-                                dispatch=first_match["dispatch"],
-                                status=first_match["status"],
-                                css_class=first_match["css_class"]
+                                rule=first_match["rule"] if first_match else f"Matched: {event_type}",
+                                dispatch=combined_dispatch,
+                                status="Delivered",
+                                css_class="purple" if any("game" in a.lower() for a in matched_actions) else "blue"
                             )
                         else:
                             event_log = models.EventLog(

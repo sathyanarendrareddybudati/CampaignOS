@@ -114,7 +114,15 @@ export default function AuthPage({ onLogin }) {
             <div className="form-group">
               <div className="password-header">
                 <label htmlFor="auth-password">Password</label>
-                {isLogin && <span className="forgot-link">Forgot password?</span>}
+                {isLogin && (
+                  <span 
+                    className="forgot-link" 
+                    onClick={() => setError('To reset your password, please contact support or check your merchant security email.')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    Forgot password?
+                  </span>
+                )}
               </div>
               <div className="input-with-icon">
                 <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>

@@ -121,7 +121,14 @@ export default function Banners({ token, campaigns = [] }) {
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaigns[0]?.id || "");
   const [savedBanners, setSavedBanners] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [copiedEmbed, setCopiedEmbed] = useState(false);
+
+  useEffect(() => {
+    if (campaigns.length > 0 && !selectedCampaignId) {
+      setSelectedCampaignId(campaigns[0].id);
+    }
+  }, [campaigns, selectedCampaignId]);
 
   useEffect(() => {
     fetch('/api/v1/banners/', {
@@ -139,6 +146,7 @@ export default function Banners({ token, campaigns = [] }) {
 
   const handleSaveBanner = () => {
     setSaving(true);
+    setSaveSuccess(false);
     fetch('/api/v1/banners/', {
       method: 'POST',
       headers: {
@@ -161,7 +169,8 @@ export default function Banners({ token, campaigns = [] }) {
       .then(newBanner => {
         setSaving(false);
         setSavedBanners(prev => [newBanner, ...prev]);
-        alert("Promo banner saved to merchant touchpoints!");
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3500);
       })
       .catch(err => {
         console.error(err);
@@ -185,7 +194,12 @@ export default function Banners({ token, campaigns = [] }) {
             Generate ready-to-display marketing banners for in-store checkout screens, social stories, and mobile touchpoints.
           </p>
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          {saveSuccess && (
+            <span style={{ color: '#10B981', fontSize: '0.85rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              ✓ Saved to Touchpoints!
+            </span>
+          )}
           <button className="btn-secondary" onClick={handleCopyEmbedCode}>
             {copiedEmbed ? "✓ Embed Code Copied!" : "</> Copy Embed Code"}
           </button>
